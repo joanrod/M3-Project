@@ -12,12 +12,23 @@ from PIL import Image
 import numpy as np
 from scipy.misc import imresize
 
+f = open("env.txt", "r")
+ENV = f.read().split('"')[1]
+
 
 #user defined variables
 IMG_SIZE    = 32
 BATCH_SIZE  = 16
-DATASET_DIR = '/home/mcv/datasets/MIT_split'
-MODEL_FNAME = '/home/group01/work/my_first_mlp.h5'
+if ENV == "local":
+    DATASET_DIR = '../../week2/MIT_split'
+    MODEL_FNAME = './models/my_first_mlp.h5'
+
+else:
+    DATASET_DIR = '/home/mcv/datasets/MIT_split'
+    MODEL_FNAME = './models/my_first_mlp.h5'
+
+if not os.path.exists(MODEL_FNAME):
+    os.makedirs(MODEL_FNAME)
 
 if not os.path.exists(DATASET_DIR):
   print(Color.RED, 'ERROR: dataset directory '+DATASET_DIR+' do not exists!\n')
