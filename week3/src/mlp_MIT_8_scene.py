@@ -15,6 +15,7 @@ f = open("env.txt", "r")
 ENV = f.read().split('"')[1]
 
 # user defined variables
+# hola
 IMG_SIZE = 32
 BATCH_SIZE = 16
 if ENV == "local":
