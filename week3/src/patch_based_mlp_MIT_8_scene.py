@@ -3,7 +3,7 @@ from utils import *
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Reshape
 from keras.preprocessing.image import ImageDataGenerator
-
+import matplotlib.pyplot as plt
 
 #user defined variables
 PATCH_SIZE  = 64
@@ -15,9 +15,9 @@ def build_mlp(input_size=PATCH_SIZE,phase='TRAIN'):
   model.add(Dense(units=2048, activation='relu'))
   #model.add(Dense(units=1024, activation='relu'))
   if phase=='TEST':
-    model.add(Dense(units=8, activation='linear')) # In test phase we softmax the average output over the image patches
+      model.add(Dense(units=8, activation='linear')) # In test phase we softmax the average output over the image patches
   else:
-    model.add(Dense(units=8, activation='softmax'))
+      model.add(Dense(units=8, activation='softmax'))
   return model
 
 f = open("env.txt", "r")
@@ -34,23 +34,23 @@ else:
 
 PATCHES_DIR = DATA_DIR + 'MIT_split_patches'
 
-model_path = "../../models/"
-model_name = 'model_patches64_basic_mlp'
-model_f_path = model_path + model_name + '.h5'
+model_name = 'exp8_basic_patch'
+model_path = "../../models/" + model_name + "/"
 
+model_f_path = model_path + model_name + '.h5'
 
 if not os.path.exists(model_path):
     os.mkdir(model_path)
 
 if not os.path.exists(DATASET_DIR):
-  colorprint(Color.RED, 'ERROR: dataset directory '+DATASET_DIR+' do not exists!\n')
-  quit()
+    colorprint(Color.RED, 'ERROR: dataset directory '+DATASET_DIR+' do not exists!\n')
+    quit()
 
 if os.path.exists(PATCHES_DIR):
-  colorprint(Color.YELLOW, 'WARNING: patches dataset directory '+PATCHES_DIR+' already exists!\n')
+    colorprint(Color.YELLOW, 'WARNING: patches dataset directory '+PATCHES_DIR+' already exists!\n')
 
-colorprint(Color.BLUE, 'Creating image patches dataset into '+PATCHES_DIR+'\n')
-generate_image_patches_db(DATASET_DIR,PATCHES_DIR,patch_size=PATCH_SIZE)
+    colorprint(Color.BLUE, 'Creating image patches dataset into '+PATCHES_DIR+'\n')
+    generate_image_patches_db(DATASET_DIR,PATCHES_DIR,patch_size=PATCH_SIZE)
 
 colorprint(Color.BLUE, 'Building MLP model...\n')
 
@@ -64,48 +64,76 @@ print(model.summary())
 
 colorprint(Color.BLUE, 'Done!\n')
 
-if not os.path.exists(model_f_path):
-  colorprint(Color.YELLOW, 'WARNING: model file '+model_f_path+' do not exists!\n')
-  colorprint(Color.BLUE, 'Start training...\n')
-  # this is the dataset configuration we will use for training
-  # only rescaling
-  train_datagen = ImageDataGenerator(
-          rescale=1./255,
-          horizontal_flip=True)
-  
-  # this is the dataset configuration we will use for testing:
-  # only rescaling
-  test_datagen = ImageDataGenerator(rescale=1./255)
-  
-  # this is a generator that will read pictures found in
-  # subfolers of 'data/train', and indefinitely generate
-  # batches of augmented image data
-  train_generator = train_datagen.flow_from_directory(
-          PATCHES_DIR+'/train',  # this is the target directory
-          target_size=(PATCH_SIZE, PATCH_SIZE),  # all images will be resized to PATCH_SIZExPATCH_SIZE
-          batch_size=BATCH_SIZE,
-          classes = ['coast','forest','highway','inside_city','mountain','Opencountry','street','tallbuilding'],
-          class_mode='categorical')  # since we use binary_crossentropy loss, we need categorical labels
-  
-  # this is a similar generator, for validation data
-  validation_generator = test_datagen.flow_from_directory(
-          PATCHES_DIR+'/test',
-          target_size=(PATCH_SIZE, PATCH_SIZE),
-          batch_size=BATCH_SIZE,
-          classes = ['coast','forest','highway','inside_city','mountain','Opencountry','street','tallbuilding'],
-          class_mode='categorical')
-  
-  model.fit_generator(
-          train_generator,
-          steps_per_epoch=18810 // BATCH_SIZE,
-          epochs=150,
-          validation_data=validation_generator,
-          validation_steps=8070 // BATCH_SIZE)
-  
-  colorprint(Color.BLUE, 'Done!\n')
-  colorprint(Color.BLUE, 'Saving the model into '+model_f_path+' \n')
-  model.save_weights(model_f_path)  # always save your weights after training or during training
-  colorprint(Color.BLUE, 'Done!\n')
+if os.path.exists(model_f_path):
+    model.load_weights(model_f_path)
+    colorprint(Color.YELLOW, 'WARNING: model file '+model_f_path+' exists! Loading weights\n')
+
+colorprint(Color.BLUE, 'Start training...\n')
+# this is the dataset configuration we will use for training
+# only rescaling
+train_datagen = ImageDataGenerator(
+      rescale=1./255,
+      horizontal_flip=True)
+
+# this is the dataset configuration we will use for testing:
+# only rescaling
+test_datagen = ImageDataGenerator(rescale=1./255)
+dir_patches = PATCHES_DIR + "_" + str(PATCH_SIZE)
+# this is a generator that will read pictures found in
+# subfolers of 'data/train', and indefinitely generate
+# batches of augmented image data
+train_generator = train_datagen.flow_from_directory(
+      dir_patches+'/train',  # this is the target directory
+      target_size=(PATCH_SIZE, PATCH_SIZE),  # all images will be resized to PATCH_SIZExPATCH_SIZE
+      batch_size=BATCH_SIZE,
+      classes = ['coast','forest','highway','inside_city','mountain','Opencountry','street','tallbuilding'],
+      class_mode='categorical')  # since we use binary_crossentropy loss, we need categorical labels
+
+# this is a similar generator, for validation data
+validation_generator = test_datagen.flow_from_directory(
+      dir_patches+'/test',
+      target_size=(PATCH_SIZE, PATCH_SIZE),
+      batch_size=BATCH_SIZE,
+      classes = ['coast','forest','highway','inside_city','mountain','Opencountry','street','tallbuilding'],
+      class_mode='categorical')
+
+history = model.fit_generator(
+      train_generator,
+      steps_per_epoch=18810 // BATCH_SIZE,
+      epochs=150,
+      shuffle=True,
+      validation_data=validation_generator,
+      validation_steps=8070 // BATCH_SIZE)
+
+colorprint(Color.BLUE, 'Done!\n')
+colorprint(Color.BLUE, 'Saving the model into '+model_f_path+' \n')
+model.save_weights(model_f_path)  # always save your weights after training or during training
+colorprint(Color.BLUE, 'Done!\n')
+
+output_path = model_path+model_name+'_history'
+np.save(output_path, history.history)
+
+print('Finished Training\n')
+print('Saving the model into '+model_f_path+' \n')
+model.save_weights(model_f_path)  # always save your weights after training or during training
+# summarize history for accuracy
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'validation'], loc='upper left')
+plt.savefig(model_path+'accuracy.jpg')
+plt.close()
+
+  # summarize history for loss
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'validation'], loc='upper left')
+plt.savefig(model_path+'loss.jpg')
 
 #
 # colorprint(Color.BLUE, 'Building MLP model for testing...\n')

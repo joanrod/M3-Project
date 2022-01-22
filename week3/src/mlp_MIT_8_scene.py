@@ -24,12 +24,14 @@ ENV = f.read().split('"')[1]
 IMG_SIZE    = 32
 BATCH_SIZE  = 16
 if ENV == "local":
-    DATASET_DIR = '../../week2/MIT_split'
+    DATASET_DIR = '../../../M3/MIT_split'
+
 else:
     DATASET_DIR = '/home/mcv/datasets/MIT_split'
 
-model_path = "models/"
-model_name = 'model1'
+model_name = 'exp1_hlayers4'
+model_path = "models/" + model_name +"/"
+
 model_f_path = model_path + model_name + '.h5'
 
 if not os.path.exists(model_path):
@@ -45,7 +47,6 @@ print('Building MLP model...\n')
 #Build the Multi Layer Perceptron model
 model = Sequential()
 model.add(Reshape((IMG_SIZE * IMG_SIZE * 3,), input_shape=(IMG_SIZE, IMG_SIZE, 3), name='first'))
-model.add(Dense(units=8192, activation='relu',name='w'))
 model.add(Dense(units=4096, activation='relu',name='second'))
 model.add(Dense(units=2048, activation='relu',name='third'))
 model.add(Dense(units=1024, activation='relu',name='fourth'))
@@ -57,7 +58,7 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 print(model.summary())
-plot_model(model, to_file='modelMLP.png', show_shapes=True, show_layer_names=True)
+plot_model(model, to_file=model_path + model_name+'.png', show_shapes=True, show_layer_names=True)
 
 if os.path.exists(model_f_path):
     # model.load_weights(model_f_path)
@@ -96,11 +97,12 @@ validation_generator = test_datagen.flow_from_directory(
 history = model.fit_generator(
         train_generator,
         steps_per_epoch=1881 // BATCH_SIZE,
-        epochs=100,
+        shuffle=True,
+        epochs=150,
         validation_data=validation_generator,
         validation_steps=807 // BATCH_SIZE)
 
-output_path = model_name+'_history'
+output_path = model_path+model_name+'_history'
 np.save(output_path, history.history)
 
 print('Finished Training\n')
@@ -113,7 +115,7 @@ plt.title('model accuracy')
 plt.ylabel('accuracy')
 plt.xlabel('epoch')
 plt.legend(['train', 'validation'], loc='upper left')
-plt.savefig('accuracy.jpg')
+plt.savefig(model_path+'accuracy.jpg')
 plt.close()
 
   # summarize history for loss
@@ -123,7 +125,7 @@ plt.title('model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'validation'], loc='upper left')
-plt.savefig('loss.jpg')
+plt.savefig(model_path+'loss.jpg')
 #
 # #to get the output of a given layer
 #  #crop the model up to a certain layer
