@@ -26,14 +26,16 @@ ENV = f.read().split('"')[1]
 
 
 if ENV == "local":
-    DATASET_DIR = '../../week2/MIT_split'
+    DATASET_DIR = '../../../M3/MIT_split'
+    DATA_DIR = '../../data/'
 else:
     DATASET_DIR = '/home/mcv/datasets/MIT_split'
+    DATA_DIR = '../../../data/'
 
-PATCHES_DIR = '../../data/MIT_split_patches'
+PATCHES_DIR = DATA_DIR + 'MIT_split_patches'
 
 model_path = "../../models/"
-model_name = 'model1'
+model_name = 'model_patches64_basic_mlp'
 model_f_path = model_path + model_name + '.h5'
 
 
