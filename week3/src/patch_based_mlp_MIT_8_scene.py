@@ -96,14 +96,14 @@ else:
           batch_size=BATCH_SIZE,
           classes = ['coast','forest','highway','inside_city','mountain','Opencountry','street','tallbuilding'],
           class_mode='categorical')
-
+    print(validation_generator.samples)
     history = model.fit_generator(
           train_generator,
-          steps_per_epoch=18810 // BATCH_SIZE,
+          steps_per_epoch=train_generator.samples // BATCH_SIZE,
           epochs=150,
           shuffle=True,
           validation_data=validation_generator,
-          validation_steps=8070 // BATCH_SIZE)
+          validation_steps=validation_generator.samples // BATCH_SIZE)
 
     colorprint(Color.BLUE, 'Done!\n')
     colorprint(Color.BLUE, 'Saving the model into '+model_f_path+' \n')
