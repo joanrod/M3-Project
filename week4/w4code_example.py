@@ -13,6 +13,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.utils import plot_model
 
 # --------------------------------------------------Global parameters--------------------------------------------------
+from tensorflow.python.keras.callbacks import EarlyStopping
+
 plot = True  # If plot is true, the performance of the model will be shown (accuracy, loss, etc.)
 backbone = 'EfficientNetB2'
 num_of_experiment = '1'
@@ -31,15 +33,15 @@ img_height=224
 
 # NN params
 batch_size=10
-number_of_epoch=200
+number_of_epoch=500
 LR = 0.001
 optim = 'adadelta'
 
 train_samples = 400
-validation_samples=807
+validation_samples= 807
 test_samples = "?"
 # Experiment 2
-freeze_layers = False  # If this variable is activated, we will freeze the layers of the base model to train parameters
+freeze_layers = True  # If this variable is activated, we will freeze the layers of the base model to train parameters
 # Experiment 4
 new_layers = False  # Activate this variable to append new layers in between of the base model and the prediction layer
 
@@ -183,7 +185,8 @@ history=model.fit(train_generator,
                 save_best_only=True,
             save_weights_only=True),
             CSVLogger(path_model+'/results/log_classification_'+ backbone + '_exp_' + num_of_experiment +'.csv', append=True, separator=';'),
-            TensorBoard(path_model+'/tb_logs_'+ backbone + '_exp_' + num_of_experiment, update_freq=1)])
+            TensorBoard(path_model+'/tb_logs_'+ backbone + '_exp_' + num_of_experiment, update_freq=1),
+            EarlyStopping(monitor='val_loss', mode='min')])
 
 result = model.evaluate(test_generator)
 print(result)
