@@ -18,9 +18,6 @@ from tensorflow.python.keras.callbacks import EarlyStopping
 f = open("env.txt", "r")
 ENV = f.read().split('"')[1]
 
-
-
-
 plot = True  # If plot is true, the performance of the model will be shown (accuracy, loss, etc.)
 backbone = 'EfficientNetB2'
 num_of_experiment = '1'
@@ -73,24 +70,25 @@ if not os.path.exists(path_model):
     os.mkdir(path_model + "/results")
     os.mkdir(path_model + "/saved_model")
 
-    # Experiment 2
-    freeze_layers = False  # If this variable is activated, we will freeze the layers of the base model to train parameters
+# Experiment 2
+freeze_layers = False  # If this variable is activated, we will freeze the layers of the base model to train parameters
 
-    # Experiment 4
-    new_layers = False  # Activate this variable to append new layers in between of the base model and the prediction layer
+# Experiment 4
+new_layers = False  # Activate this variable to append new layers in between of the base model and the prediction layer
 
-    # Store description of experiment setup in a txt file
-    with open(path_model + '/setup_description.txt', 'w') as f:
-        f.write('Experiment set-up for: ' + path_model)
-        f.write('\nExperiment number: ' + num_of_experiment)
-        f.write('\nBackbone: ' + backbone)
-        f.write('\nFreze Layers: ' + str(freeze_layers))
-        f.write('\nBatch Norm + Relu: '+ str(new_layers))
-        f.write('\nOptimizer: ' + optim)
-        f.write('\nLearning Rate: ' + str(LR))
-        f.write('\nTrain samples: ' + str(train_samples))
-        f.write('\nValidation samples: ' + str(validation_samples))
-        f.write('\nTest samples: ' + str(test_samples))
+# Store description of experiment setup in a txt file
+with open(path_model + '/setup_description.txt', 'w') as f:
+    f.write('Experiment set-up for: ' + path_model)
+    f.write('\nExperiment number: ' + num_of_experiment)
+    f.write('\nBackbone: ' + backbone)
+    f.write('\nFreze Layers: ' + str(freeze_layers))
+    f.write('\nBatch Norm + Relu: '+ str(new_layers))
+    f.write('\nOptimizer: ' + optim)
+    f.write('\nLearning Rate: ' + str(LR))
+    f.write('\nTrain samples: ' + str(train_samples))
+    f.write('\nValidation samples: ' + str(validation_samples))
+    f.write('\nTest samples: ' + str(test_samples))
+    f.write('\nBatch Size: ' + str(batch_size))
 
 
 def preprocess_input(x, dim_ordering='default'):
@@ -194,7 +192,7 @@ history=model.fit(train_generator,
             save_weights_only=True),
             CSVLogger(path_model+'/results/log_classification_'+ backbone + '_exp_' + num_of_experiment +'.csv', append=True, separator=';'),
             TensorBoard(path_model+'/tb_logs_'+ backbone + '_exp_' + num_of_experiment, update_freq=1),
-            EarlyStopping(monitor='val_loss', mode='min')])
+            EarlyStopping(monitor='val_accuracy',patience=8,min_delta=0.001,mode='max')])
 
 result = model.evaluate(test_generator)
 print(result)
