@@ -15,17 +15,25 @@ from tensorflow.keras.utils import plot_model
 # --------------------------------------------------Global parameters--------------------------------------------------
 from tensorflow.python.keras.callbacks import EarlyStopping
 
+f = open("env.txt", "r")
+ENV = f.read().split('"')[1]
+
+
+
+
 plot = True  # If plot is true, the performance of the model will be shown (accuracy, loss, etc.)
 backbone = 'EfficientNetB2'
 num_of_experiment = '1'
 
 # Paths to database
-path_data = '../../MIT_small_train_1/MIT_small_train_1/'
-path_train = path_data + 'test'
+if ENV == "local":
+    path_data = '../../MIT_small_train_1/MIT_small_train_1'
+else:
+    path_data = '/home/mcv/m3/datasets/MIT_small_train_1'
 
-train_data_dir= path_data + 'train'
-val_data_dir= path_data + 'test'
-test_data_dir= path_data + 'test'
+train_data_dir= path_data + '/train'
+val_data_dir= path_data + '/test'
+test_data_dir= path_data + '/test'
 
 # Image params
 img_width = 224
