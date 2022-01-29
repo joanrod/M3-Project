@@ -141,7 +141,7 @@ if freeze_layers:
         layer.trainable = False
 
 opt = keras.optimizers.Adadelta(learning_rate=LR)
-model.compile(loss='categorical_crossentropy',optimizer=optim, metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy',optimizer=opt, metrics=['accuracy'])
 # for layer in model.layers:
 #     print(layer.name, layer.trainable)
 
