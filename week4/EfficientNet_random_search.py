@@ -63,7 +63,8 @@ backbone = {
     'EfficientNetB0' : tf.keras.applications.EfficientNetB0(),
     'EfficientNetB1' : tf.keras.applications.EfficientNetB1(),
     'EfficientNetB2' : tf.keras.applications.EfficientNetB2(),
-    'EfficientNetB3' : tf.keras.applications.EfficientNetB3()
+    'EfficientNetB3' : tf.keras.applications.EfficientNetB3(),
+    'EfficientNetB4' : tf.keras.applications.EfficientNetB4()
 }
 
 activ_func_dict = {
@@ -80,7 +81,7 @@ def create_model(hp):
 
     # create the base pre-trained model
     #base_model = backbone[hp.Choice('backbone', ['EfficientNetB0', 'EfficientNetB1', 'EfficientNetB2'])]
-    base_model = backbone[hp.Choice('backbone', ['EfficientNetB1', 'EfficientNetB2', 'EfficientNetB3'])]
+    base_model = backbone[hp.Choice('backbone', ['EfficientNetB2'])]
     x = base_model.layers[-2].output
 
     if hp.Choice('new_layers', [True, False]):
@@ -94,41 +95,11 @@ def create_model(hp):
     x = Dense(8, activation='softmax',name='predictions')(x)
 
     model = Model(inputs=base_model.input, outputs=x)
-    optimizer = get_optimizer(hp.Choice('optimizer', ['SGD', 'RMSprop', 'Adagrad', 'Adam']),
-                                   hp.Choice('learning_rate', [1e-4, 1e-3, 1e-2, 1e-1]),
-                                    hp.Choice('momentum', [0.2, 0.3, 0.6, 0.8, 0.9]))
+    optimizer = get_optimizer(hp.Choice('optimizer', ['SGD','Adagrad']),
+                                   hp.Choice('learning_rate', [1e-3, 1e-2]),
+                                    hp.Choice('momentum', [0.2, 0.3, 0.4, 0.5, 0.6]))
                                    #hp.Choice('momentum', [0.0, 0.2, 0.3, 0.6, 0.8, 0.9]))
     #activ_func = hp.Choice('activation_function', ['relu', 'tanh', 'elu', 'sigmoid'])
-    activ_func = hp.Choice('activation_function', ['relu', 'sigmoid'])
-
-    for layer in model.layers:
-        if str(layer.__class__.__name__) == "Activation":
-            layer.activation = activ_func_dict[activ_func]
-
-    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-    return model
-
-
-def create_model_test(hp):
-
-    # create the base pre-trained model
-    base_model = backbone[hp.Choice('backbone', ['EfficientNetB0'])]
-    x = base_model.layers[-2].output
-
-    if hp.Choice('new_layers', [True, False]):
-        print('Appending new layers to the model after the base_model...')
-        x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.Dropout(.5)(x)
-        x = Dense(1024, activation='relu', name='extra_relu_1')(x)
-        x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.Dropout(.2)(x)
-        x = Dense(256, activation='relu', name='extra_relu_2')(x)
-    x = Dense(8, activation='softmax',name='predictions')(x)
-
-    model = Model(inputs=base_model.input, outputs=x)
-    optimizer = get_optimizer(hp.Choice('optimizer', ['SGD']),
-                                   hp.Choice('learning_rate', [1e-4]),
-                                   hp.Choice('momentum', [0.0]))
     activ_func = hp.Choice('activation_function', ['relu'])
 
     for layer in model.layers:
@@ -137,7 +108,6 @@ def create_model_test(hp):
 
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     return model
-
 
 def main():
     f = open("env.txt", "r")
@@ -162,7 +132,7 @@ def main():
     img_height = 224
 
     # NN params
-    batch_size=16
+    batch_size=64
     number_of_epoch=50
 
 
@@ -209,7 +179,7 @@ def main():
         os.mkdir("models")
 
     date_start = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    path_model = "models/" + backbone + '_exp_' + num_of_experiment + '_' + date_start
+    path_model = "models/" + backbone + '_exp_b64_hp' + num_of_experiment + '_' + date_start
     if not os.path.exists(path_model):
         os.mkdir(path_model)
         os.mkdir(path_model + "/results")
@@ -227,13 +197,13 @@ def main():
         f.write('\nBatch Size: ' + str(batch_size))
         f.write('\nEpochs: ' + str(number_of_epoch))
     hypertuner = RandomSearch(create_model, objective = 'val_accuracy', max_trials = 50, executions_per_trial=1, overwrite=True, directory="hp_search",
-    project_name=backbone + '_exp_' + num_of_experiment + "_2")
+    project_name=backbone + '_exp_' + num_of_experiment + "_exp_b64_hp")
     hypertuner.search_space_summary()
 
     hypertuner.search(train_generator, steps_per_epoch=400 // batch_size, epochs=number_of_epoch,
                  validation_data=validation_generator, callbacks=[
                     EarlyStopping(monitor='val_accuracy',patience=10,min_delta=0.001,mode='max'),
-                    TensorBoard('/tb_logs', update_freq=1)])
+                    TensorBoard(path_model + '/tb_logs', update_freq=1)])
 
     # Retrieve the best model.
     best_model = hypertuner.get_best_models(num_models=1)[0]
