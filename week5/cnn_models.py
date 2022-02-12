@@ -17,21 +17,21 @@ backbone = {
 
 def customCNN1L():
     model = Sequential()
+
     model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(224, 224, 3)))
     model.add(layers.MaxPooling2D((2, 2)))
-
     model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(0.1))
 
     model.add(layers.Conv2D(32, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Dropout(0.5))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(0.3))
 
     model.add(layers.GlobalAvgPool2D())
 
     model.add(layers.Dense(64, activation='relu'))
-
-    model.add(layers.Dropout(0.5))
-
+    model.add(layers.Dropout(0.3))
     model.add(layers.Dense(8, activation='softmax'))
 
     return model
@@ -39,30 +39,30 @@ def customCNN1L():
 def customCNN2L():
     model = Sequential()
 
-    # First block
     model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(224, 224, 3)))
     model.add(layers.MaxPooling2D((2, 2)))
     model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(0.1))
 
     model.add(layers.Conv2D(32, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Dropout(0.5))
-
+    model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(0.3))
 
     model.add(layers.Conv2D(64, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
     model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(0.1))
 
     model.add(layers.Conv2D(64, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Dropout(0.5))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(0.1))
 
     model.add(layers.GlobalAvgPool2D())
 
-    model.add(layers.Dense(512, activation='relu'))
-
-    model.add(layers.Dropout(0.5))
-
+    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dropout(0.3))
     model.add(layers.Dense(8, activation='softmax'))
 
     return model

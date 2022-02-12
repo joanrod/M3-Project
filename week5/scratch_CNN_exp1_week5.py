@@ -24,7 +24,7 @@ def create_model(num_blocks):
     elif num_blocks == 2:
         model = customCNN2L()
 
-    optimizer = get_optimizer('Adagrad', 0.1)
+    optimizer = get_optimizer('Adagrad', 0.01)
 
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     return model
@@ -34,8 +34,9 @@ def main():
     ENV = f.read().split('"')[1]
 
     plot = True  # If plot is true, the performance of the model will be shown (accuracy, loss, etc.)
-    backbone = 'CustomCNN2'
-    num_of_experiment = '2'
+    backbone = 'CustomCNN1L'
+    num_blocks = 1
+    num_of_experiment = '1'
 
     # Paths to database
     if ENV == "local":
@@ -52,8 +53,8 @@ def main():
     img_height = 224
 
     # NN params
-    batch_size=16
-    number_of_epoch=50
+    batch_size=32
+    number_of_epoch=200
 
 
     datagen = ImageDataGenerator(featurewise_center=False,
@@ -114,7 +115,7 @@ def main():
         f.write('\nEpochs: ' + str(number_of_epoch))
         f.write('\nEpochs: ' + str(number_of_epoch))
 
-    model = create_model()
+    model = create_model(num_blocks=num_blocks)
     model.summary()
 
     file = path_model + "/saved_model/model_arch.png"
@@ -136,7 +137,8 @@ def main():
                                 path_model + '/results/log_classification_' + backbone + '_exp_' + num_of_experiment + '.csv',
                                 append=True, separator=';'),
                             TensorBoard(path_model + '/tb_logs', update_freq=1),
-                            EarlyStopping(monitor='val_accuracy', patience=20, min_delta=0.001, mode='max')])
+                            # EarlyStopping(monitor='val_accuracy', patience=20, min_delta=0.001, mode='max')
+                        ])
 
     result = model.evaluate(test_generator)
     print(result)
