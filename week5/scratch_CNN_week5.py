@@ -2,40 +2,59 @@ import datetime
 import os
 
 import tensorflow as tf
-from keras.callbacks import ModelCheckpoint, CSVLogger
 from keras_tuner.tuners import RandomSearch
+import keras_tuner
 from tensorflow.keras import backend as K
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.models import Model
-from tensorflow.keras.utils import plot_model
-
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow.keras.callbacks import TensorBoard
 from utils import *
 from cnn_models import *
+from customLoggerCallback import CustomLogger
 
-# Experiment 2
-freeze_layers = False  # If this variable is activated, we will freeze the layers of the base model to train parameters
 
-def create_model(num_blocks):
-    if num_blocks == 1:
-        model = customCNN1L()
-    elif num_blocks == 2:
-        model = customCNN2L()
+def create_model(hp):
 
-    optimizer = get_optimizer('Adagrad', 0.1)
+    kernel_size = hp.Choice('kernel', [3, 5])
+    model = Sequential()
+    model.add(layers.Conv2D(32, (kernel_size, kernel_size), activation='relu', input_shape=(224, 224, 3)))
+    model.add(layers.MaxPooling2D((2, 2)))
 
+    if hp.Choice('BatchNorm1', [True]):
+        model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(hp.Choice('dropout1', [0.1, 0.3, 0.5])))
+
+    model.add(layers.Conv2D(32, (kernel_size, kernel_size), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
+
+    if hp.Choice('BatchNorm2', [True]):
+        model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(hp.Choice('dropout2', [0.1, 0.3, 0.5])))
+
+    if hp.Choice('GlobalAverage', [True]):
+        model.add(layers.GlobalAvgPool2D())
+    else:
+        model.add(layers.Flatten())
+    model.add(layers.Dense(hp.Choice('FC', [64, 128, 256]), activation='relu'))
+
+    model.add(layers.Dropout(hp.Choice('dropoutFC', [0.1, 0.3, 0.5])))
+    model.add(layers.Dense(8, activation='softmax'))
+    print("Params: ", model.count_params())
+    print(model.summary())
+    optimizer = get_optimizer(hp.Choice('optimizer', ['Adagrad']), hp.Choice('learning_rate', [1e-2, 1e-3]))
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     return model
+
 
 def main():
     f = open("env.txt", "r")
     ENV = f.read().split('"')[1]
 
     plot = True  # If plot is true, the performance of the model will be shown (accuracy, loss, etc.)
-    backbone = 'CustomCNN2'
-    num_of_experiment = '2'
+    backbone = 'CustomCNN1'
+    num_of_experiment = '0'
 
     # Paths to database
     if ENV == "local":
@@ -54,7 +73,7 @@ def main():
     # NN params
     batch_size=16
     number_of_epoch=50
-
+    random_trials = 100
 
     datagen = ImageDataGenerator(featurewise_center=False,
         samplewise_center=False,
@@ -112,38 +131,28 @@ def main():
         f.write('\nExperiment number: ' + num_of_experiment)
         f.write('\nBatch Size: ' + str(batch_size))
         f.write('\nEpochs: ' + str(number_of_epoch))
-        f.write('\nEpochs: ' + str(number_of_epoch))
+    # 'val_accuracy'
+    keras_tuner.Objective("params", direction="max")
+    hypertuner = RandomSearch(create_model, objective = 'val_accuracy', max_trials = random_trials, executions_per_trial=1, overwrite=True, directory="hp_search",
+    project_name=backbone + '_exp_' + num_of_experiment + "_" + date_start + "_hp")
+    hypertuner.search_space_summary()
 
-    model = create_model()
-    model.summary()
+    hypertuner.search(train_generator, steps_per_epoch=train_samples // batch_size, epochs=number_of_epoch,
+                 validation_data=validation_generator, callbacks=[
+                    # EarlyStopping(monitor='val_accuracy',patience=10,min_delta=0.001,mode='max'),
+                    TensorBoard(path_model + '/tb_logs', update_freq=1)])
 
-    file = path_model + "/saved_model/model_arch.png"
-    plot_model(model, to_file=file, show_shapes=True, show_layer_names=True)
+    # Retrieve the best model.
+    best_model = hypertuner.get_best_models(num_models=1)[0]
 
-    history = model.fit(train_generator,
-                        steps_per_epoch=int(train_samples // batch_size),
-                        epochs=number_of_epoch,
-                        shuffle=True,
-                        validation_data=validation_generator,
-                        validation_steps=int(validation_samples // batch_size),
-                        callbacks=[
-                            # '/path_model + "/saved_model/"+backbone_epoch{epoch:02d}_acc{val_accuracy:.2f}'+backbone+'.h5'
-                            ModelCheckpoint(path_model + "/saved_model/" + backbone + '.h5',
-                                            monitor='val_accuracy',
-                                            save_best_only=True,
-                                            save_weights_only=True),
-                            CSVLogger(
-                                path_model + '/results/log_classification_' + backbone + '_exp_' + num_of_experiment + '.csv',
-                                append=True, separator=';'),
-                            TensorBoard(path_model + '/tb_logs', update_freq=1),
-                            EarlyStopping(monitor='val_accuracy', patience=20, min_delta=0.001, mode='max')])
+    hypertuner.results_summary()
 
-    result = model.evaluate(test_generator)
-    print(result)
+    # Evaluate the best model.
+    loss, accuracy = best_model.evaluate(test_generator)
 
-    print("compactness ratio: {}".format((result[1]/model.count_params()/100000)))
+    print(f'loss: {loss}')
+    print(f'accuracy: {accuracy}')
 
-    plot_acc_and_loss(history, path_model)
 
 if __name__ == '__main__':
     main()
