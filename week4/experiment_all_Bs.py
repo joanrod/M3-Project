@@ -14,7 +14,7 @@ from tensorflow.keras.utils import plot_model
 import timeit
 # --------------------------------------------------Global parameters--------------------------------------------------
 from tensorflow.python.keras.callbacks import EarlyStopping
-start = timeit.default_timer()
+
 
 f = open("env.txt", "r")
 ENV = f.read().split('"')[1]
@@ -39,58 +39,15 @@ img_height=224
 
 # NN params
 batch_size=16
-number_of_epoch=50
+number_of_epoch=100
 LR = 0.001
 momentum = 0.3
 optim = 'Adagrad'
 
+
 train_samples = 400
 validation_samples= 800
 test_samples = 800
-# Experiment 2
-freeze_layers = False  # If this variable is activated, we will freeze the layers of the base model to train parameters
-# Experiment 4
-new_layers = False  # Activate this variable to append new layers in between of the base model and the prediction layer
-
-# TO DO...:
-# CALLBACKS
-# HYPERPARAMETER SEARCH
-# DATA AUGMENTATION
-# TRY THE 4 DATASETS OF MIT_SMALL_TRAIN
-# mas propuestas...
-
-# ---------------------------------------------------------------------------------------------------------------------
-
-# Create the specific folders for this week, only if they don't exist
-if not os.path.exists("models"):
-    os.mkdir("models")
-
-date_start = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-path_model = "models/models_exp_Bs/" + backbone + '_' + date_start
-if not os.path.exists(path_model):
-    os.mkdir(path_model)
-    os.mkdir(path_model + "/results")
-    os.mkdir(path_model + "/saved_model")
-
-# Experiment 2
-freeze_layers = False  # If this variable is activated, we will freeze the layers of the base model to train parameters
-
-# Experiment 4
-new_layers = False  # Activate this variable to append new layers in between of the base model and the prediction layer
-
-# Store description of experiment setup in a txt file
-with open(path_model + '/setup_description.txt', 'w') as f:
-    f.write('Experiment set-up for: ' + path_model)
-    f.write('\nExperiment number: ' + num_of_experiment)
-    f.write('\nBackbone: ' + backbone)
-    f.write('\nFreze Layers: ' + str(freeze_layers))
-    f.write('\nBatch Norm + Relu: '+ str(new_layers))
-    f.write('\nOptimizer: ' + optim)
-    f.write('\nLearning Rate: ' + str(LR))
-    f.write('\nTrain samples: ' + str(train_samples))
-    f.write('\nValidation samples: ' + str(validation_samples))
-    f.write('\nTest samples: ' + str(test_samples))
-    f.write('\nBatch Size: ' + str(batch_size))
 
 
 def preprocess_input(x, dim_ordering='default'):
@@ -119,45 +76,6 @@ def preprocess_input(x, dim_ordering='default'):
         x[:, :, 2] -= 108.492
         x[2, :, :] = x[2, :, :] / 56.792
     return x
-    
-# create the base pre-trained model
-
-base_model = backbone[current_backbone]
-
-# file = path_model + "/saved_model" + '/completeModel.png'
-# plot_model(base_model, to_file=file, show_shapes=True, show_layer_names=True)
-
-x = base_model.layers[-2].output
-
-if new_layers:
-    print('Appending new layers to the model after the base_model...')
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Dropout(.5)(x)
-    x = Dense(1024, activation='relu', name='extra_relu_1')(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Dropout(.2)(x)
-    x = Dense(256, activation='relu', name='extra_relu_2')(x)
-x = Dense(8, activation='softmax',name='predictions')(x)
-
-model = Model(inputs=base_model.input, outputs=x)
-print(model.summary())
-with open(path_model + '/setup_description.txt', 'a') as f:
-    f.write('\n\n Model Summary: \n' + model.summary())
-
-# file = path_model + "/saved_model" + '/OurModel.png'
-# plot_model(model, to_file=file, show_shapes=True, show_layer_names=True)
-
-# Freeze the layers from the model and train only the added ones
-if freeze_layers:
-    print('Freezing layers from the model and training only the added ones...')
-    for layer in base_model.layers:
-        layer.trainable = False
-
-opt = tf.keras.optimizers.Adagrad(learning_rate=LR)
-model.compile(loss='categorical_crossentropy',optimizer=opt, metrics=['accuracy'])
-# for layer in model.layers:
-#     print(layer.name, layer.trainable)
-
 #preprocessing_function=preprocess_input,
 datagen = ImageDataGenerator(featurewise_center=False,
     samplewise_center=False,
@@ -191,45 +109,102 @@ validation_generator = datagen.flow_from_directory(val_data_dir,
         batch_size=batch_size,
         class_mode='categorical')
 
-history=model.fit(train_generator,
-        steps_per_epoch=int(train_samples//batch_size),
-        epochs=number_of_epoch,
-        shuffle=True,
-        validation_data=validation_generator,
-        validation_steps= int(validation_samples//batch_size),
-        callbacks=[
-            #'/path_model + "/saved_model/"+backbone_epoch{epoch:02d}_acc{val_accuracy:.2f}'+backbone+'.h5'
-            ModelCheckpoint(path_model + "/saved_model/"+backbone+'.h5',
-                monitor='val_accuracy',
-                save_best_only=True,
-            save_weights_only=True),
-            CSVLogger(path_model+'/results/log_classification_'+ backbone + '_exp_' + num_of_experiment +'.csv', append=True, separator=';'),
-            TensorBoard(path_model+'/tb_logs_'+ backbone + '_exp_' + num_of_experiment, update_freq=1),
-            EarlyStopping(monitor='val_accuracy',patience=10,min_delta=0.001,mode='max')])
-stop = timeit.default_timer()
-print('Time: ', stop - start)
+# ---------------------------------------------------------------------------------------------------------------------
 
-result = model.evaluate(test_generator)
-print(result)
+# Create the specific folders for this week, only if they don't exist
+if not os.path.exists("models"):
+    os.mkdir("models")
+backbone_dict = {
+    'EfficientNetB0' : tf.keras.applications.EfficientNetB0(),
+    'EfficientNetB1' : tf.keras.applications.EfficientNetB1(),
+    'EfficientNetB2' : tf.keras.applications.EfficientNetB2(),
+    'EfficientNetB3' : tf.keras.applications.EfficientNetB3(),
+    'EfficientNetB4' : tf.keras.applications.EfficientNetB4(),
+    'EfficientNetB5' : tf.keras.applications.EfficientNetB5()
+}
+list_run = ['EfficientNetB0', 'EfficientNetB1', 'EfficientNetB2', 'EfficientNetB3', 'EfficientNetB4', 'EfficientNetB5']
+for backbone in list_run:
+    start = timeit.default_timer()
+    date_start = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    path_model = "models/models_exp_Bs2/" + backbone + '_' + date_start
+    if not os.path.exists(path_model):
+        os.makedirs(path_model)
+        os.mkdir(path_model + "/results")
+        os.mkdir(path_model + "/saved_model")
+
+    # Experiment 2
+    freeze_layers = False  # If this variable is activated, we will freeze the layers of the base model to train parameters
+
+    # Experiment 4
+    new_layers = False  # Activate this variable to append new layers in between of the base model and the prediction layer
+
+    # Store description of experiment setup in a txt file
+    with open(path_model + '/setup_description.txt', 'w') as f:
+        f.write("Starts: "+ date_start)
+        f.write('Experiment set-up for: ' + path_model)
+        f.write('\nExperiment number: ' + num_of_experiment)
+        f.write('\nBackbone: ' + backbone)
+        f.write('\nFreze Layers: ' + str(freeze_layers))
+        f.write('\nBatch Norm + Relu: '+ str(new_layers))
+        f.write('\nOptimizer: ' + optim)
+        f.write('\nLearning Rate: ' + str(LR))
+        f.write('\nTrain samples: ' + str(train_samples))
+        f.write('\nValidation samples: ' + str(validation_samples))
+        f.write('\nTest samples: ' + str(test_samples))
+        f.write('\nBatch Size: ' + str(batch_size))
 
 
-# list all data in history
+    # create the base pre-trained model
+    base_model = backbone_dict[backbone]
 
-# if plot:
-#   # summarize history for accuracy
-#   plt.plot(history.history['accuracy'])
-#   plt.plot(history.history['val_accuracy'])
-#   plt.title('model accuracy')
-#   plt.ylabel('accuracy')
-#   plt.xlabel('epoch')
-#   plt.legend(['train', 'validation'], loc='upper left')
-#   plt.savefig(path_model + '/results/accuracy.jpg')
-#   plt.close()
-#   # summarize history for loss
-#   plt.plot(history.history['loss'])
-#   plt.plot(history.history['val_loss'])
-#   plt.title('model loss')
-#   plt.ylabel('loss')
-#   plt.xlabel('epoch')
-#   plt.legend(['train', 'validation'], loc='upper left')
-#   plt.savefig(path_model + '/results/loss.jpg')
+    # file = path_model + "/saved_model" + '/completeModel.png'
+    # plot_model(base_model, to_file=file, show_shapes=True, show_layer_names=True)
+
+    x = base_model.layers[-2].output
+
+    x = Dense(8, activation='softmax',name='predictions')(x)
+
+    model = Model(inputs=base_model.input, outputs=x)
+    print(model.summary())
+    with open(path_model + '/setup_description.txt', 'a') as f:
+        f.write('\n\n Model Summary: ' + str(model.count_params()))
+
+    # file = path_model + "/saved_model" + '/OurModel.png'
+    # plot_model(model, to_file=file, show_shapes=True, show_layer_names=True)
+
+    # Freeze the layers from the model and train only the added ones
+    if freeze_layers:
+        print('Freezing layers from the model and training only the added ones...')
+        for layer in base_model.layers:
+            layer.trainable = False
+
+    opt = tf.keras.optimizers.Adagrad(learning_rate=LR)
+    model.compile(loss='categorical_crossentropy',optimizer=opt, metrics=['accuracy'])
+    # for layer in model.layers:
+    #     print(layer.name, layer.trainable)
+
+
+
+    history=model.fit(train_generator,
+            steps_per_epoch=int(train_samples//batch_size),
+            epochs=number_of_epoch,
+            shuffle=True,
+            validation_data=validation_generator,
+            validation_steps= int(validation_samples//batch_size),
+            callbacks=[
+                #'/path_model + "/saved_model/"+backbone_epoch{epoch:02d}_acc{val_accuracy:.2f}'+backbone+'.h5'
+                ModelCheckpoint(path_model + "/saved_model/"+backbone+'.h5',
+                    monitor='val_accuracy',
+                    save_best_only=True,
+                save_weights_only=True),
+                CSVLogger(path_model+'/results/log_classification_'+ backbone + '_exp_' + num_of_experiment +'.csv', append=True, separator=';'),
+                TensorBoard(path_model+'/tb_logs_'+ backbone + '_exp_' + num_of_experiment, update_freq=1),
+                EarlyStopping(monitor='val_accuracy',patience=10,min_delta=0.001,mode='max')])
+    stop = timeit.default_timer()
+    print('Time: ', stop - start)
+    with open(path_model + '/setup_description.txt', 'a') as f:
+        f.write('\n\n Time spent: ' + str(stop))
+    result = model.evaluate(test_generator)
+    with open(path_model + '/setup_description.txt', 'a') as f:
+        f.write('\n\n Result in test: ' + str(result[0]) + ", " + str(result[1]))
+    print(result)
