@@ -41,6 +41,7 @@ class MITSceneDataset(Dataset):
         img_path = os.path.join(self.image_dir, self.labels[index], self.images[index])
         image_label = self.labels[index]
         image = np.array(Image.open(img_path).convert("RGB"))
+        image = image.transpose((2,0,1))
 
         return image, image_label
 
