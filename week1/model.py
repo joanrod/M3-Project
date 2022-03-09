@@ -6,18 +6,19 @@ from collections import OrderedDict
 class NetSquared(nn.Module):
     def __init__(self):
         super(NetSquared, self).__init__()
-        self.model = nn.Sequential(OrderedDict([
-            ('conv1',nn.Conv2d(in_channels=3, out_channels=32, kernel_size=(3,3))),
-            ('relu1', nn.ReLU()),
-            ('maxPool1', nn.MaxPool2d((2,2))),
-            ('BatchNorm1', nn.BatchNorm2d(num_features=32)),
-            ('Dropout1', nn.Dropout(0.1)),
-            ('Conv2', nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3))),
-            ('relu1', nn.ReLU()),
-            ('MaxPool2', nn.MaxPool2d((2, 2))),
-            ('BatchNorm2', nn.BatchNorm2d(num_features=64)),
-            ('Dropout2', nn.Dropout(0.3)),
-        ]))
+        self.model = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=(3,3)),
+            nn.ReLU(),
+            nn.MaxPool2d(2,2),
+            nn.BatchNorm2d(num_features=16),
+            nn.Dropout(p=0.1),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3)),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.BatchNorm2d(num_features=32),
+            nn.Dropout(p=0.3),
+            nn.Linear()
+        )
 
     def forward(self, x):
         return self.model(x)
