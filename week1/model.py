@@ -3,6 +3,7 @@ import torch.nn as nn
 import torchvision.transforms.functional as TF
 from collections import OrderedDict
 
+
 class NetSquared(nn.Module):
     def __init__(self):
         super(NetSquared, self).__init__()
@@ -19,7 +20,7 @@ class NetSquared(nn.Module):
         self.dropout1 = nn.Dropout2d(p=0.1)
         self.dropout2 = nn.Dropout2d(p=0.3)
 
-        self.linear = nn.Linear(in_features=186624, out_features=8)
+        self.linear = nn.Linear(in_features=246016, out_features=8)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -37,6 +38,7 @@ class NetSquared(nn.Module):
         x = self.linear(x)
 
         return x
+
 
 if __name__ == "__main__":
     """

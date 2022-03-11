@@ -4,6 +4,7 @@ from torch.utils.data import Dataset
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class MITSceneDataset(Dataset):
     """
     Function to initialize the dataset for the MIT-Scene
@@ -44,6 +45,7 @@ class MITSceneDataset(Dataset):
         image = image.transpose((2,0,1))
 
         return image, image_label
+
 
 if __name__=="__main__":
     """
