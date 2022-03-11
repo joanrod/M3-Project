@@ -1,11 +1,14 @@
 import torch
 import torch.nn as nn
-import torchvision.transforms.functional as TF
-from collections import OrderedDict
-
 
 class NetSquared(nn.Module):
+    """
+    Class of the custom CNN
+    """
     def __init__(self):
+        """
+        Initialization of the needed layers
+        """
         super(NetSquared, self).__init__()
 
         self.relu = nn.ReLU()
