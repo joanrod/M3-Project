@@ -23,23 +23,28 @@ class NetSquared(nn.Module):
         self.dropout1 = nn.Dropout2d(p=0.1)
         self.dropout2 = nn.Dropout2d(p=0.3)
 
-        self.linear = nn.Linear(in_features=246016, out_features=8)
+        self.globAvgPool = nn.AdaptiveAvgPool2d((1,1))
+
+        self.linear = nn.Linear(in_features=64, out_features=8)
 
     def forward(self, x):
         x = self.conv1(x)
         x = self.relu(x)
         x = self.maxp(x)
         x = self.bnorm1(x)
+        x = self.dropout1(x)
 
         x = self.conv2(x)
         x = self.relu(x)
         x = self.maxp(x)
         x = self.bnorm2(x)
+        x = self.dropout2(x)
+        x = self.globAvgPool(x)
 
         x = torch.squeeze(x)
-        x = torch.flatten(x,1)
+        # x = torch.flatten(x,1)
         x = self.linear(x)
-
+        #
         return x
 
 
