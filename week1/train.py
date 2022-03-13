@@ -27,7 +27,7 @@ NUM_EPOCHS = 200
 NUM_WORKERS = 2
 PIN_MEMORY = True       # To speed up the file transfer to CPU to GPU
 LOAD_MODEL = False      # If True the stored weights will be laoded
-ROOT_PATH = "./../../data/"
+ROOT_PATH = ""
 TRAIN_IMG_DIR = ROOT_PATH + "MIT_split/train/"
 TEST_IMG_DIR = ROOT_PATH + "MIT_split/test/"
 
