@@ -3,6 +3,8 @@
 - Igor Ugarte - igorugarte.cvm@gmail.com
 - Juan Antonio Rodríguez - juanantonio.rodriguez@upf.edu
 - David Serrano - 99d.serrano@gmail.com
+
+[Report](https://www.overleaf.com/read/svmjdyqhxtty)
 ---
 ### Week1
 
