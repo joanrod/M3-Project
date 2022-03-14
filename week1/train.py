@@ -12,24 +12,26 @@ from tensorboardX import SummaryWriter  # tensorboard --logdir=folder logs
 from datetime import datetime
 import wandb
 
-wandb.init(project="NetSquared", entity="celulaeucariota")
-wandb.config = {
-  "learning_rate": 0.001,
-  "epochs": 100,
-  "batch_size": 128
-}
+
 
 # Hyperparameters etc.
 LEARNING_RATE = 0.01
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 32
-NUM_EPOCHS = 200
+NUM_EPOCHS = 5
 NUM_WORKERS = 2
 PIN_MEMORY = True       # To speed up the file transfer to CPU to GPU
 LOAD_MODEL = False      # If True the stored weights will be laoded
 ROOT_PATH = "./../../data/"
 TRAIN_IMG_DIR = ROOT_PATH + "MIT_split/train/"
 TEST_IMG_DIR = ROOT_PATH + "MIT_split/test/"
+
+wandb.init(project="NetSquared", entity="celulaeucariota")
+wandb.config = {
+  "learning_rate": LEARNING_RATE,
+  "epochs": NUM_EPOCHS,
+  "batch_size": BATCH_SIZE
+}
 
 # Timer
 start_time = datetime.today().strftime('%d_%m_%Y_%H_%M_%S')
@@ -54,7 +56,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler, device, epoch_num):
     model.train()                       # Train mode
 
     loop = tqdm(loader, desc=f'EPOCH {epoch_num} TRAIN')  # Create the tqdm bar for visualizing the progress.
-
+    iterations = loop.__len__()
     correct = 0     # accumulated correct predictions
     total = 0       # accumulated total predictions
     acc_loss = 0    # accumulated loss
@@ -83,9 +85,9 @@ def train_fn(loader, model, optimizer, loss_fn, scaler, device, epoch_num):
         loop.set_postfix(acc=correct/total, loss=loss.item())  # set current accuracy and loss
 
         # Tensorboard: the object writer will add the batch metrics to plot in real time
-    write_to_tensorboard(model_id, 'train', acc_loss/total, correct/total, epoch_num)
+    write_to_tensorboard(model_id, 'train', acc_loss/iterations, correct/total, epoch_num)
+    return correct/total, acc_loss/iterations
 
-    return correct/total, acc_loss/total
 def write_to_tensorboard(model_name, phase, epoch_loss, epoch_acc, counter):
     writer.add_scalars(model_name + "/loss", {phase: epoch_loss}, counter)
     writer.add_scalars(model_name + "/accuracy", {phase: epoch_acc}, counter)
@@ -107,7 +109,7 @@ def eval_fn(loader, model, loss_fn, device, epoch_num):
     model.eval()                        # Put the model in evaluation mode
 
     loop = tqdm(loader, desc=f'EPOCH {epoch_num}  TEST')  # Create the tqdm bar for visualizing the progress.
-
+    iterations = loop.__len__()
     correct = 0     # accumulated correct predictions
     total = 0       # accumulated total predictions
     acc_loss = 0    # accumulated loss
@@ -116,6 +118,7 @@ def eval_fn(loader, model, loss_fn, device, epoch_num):
     with torch.no_grad():
         # Iterate through the batches
         for (data, targets) in loop:
+
 
             data = data.to(device=device)           # Batch of images to DEVICE, where the model is
             targets = targets.to(device=device)     # Batch of labels to DEVICE, where the model is
@@ -130,8 +133,8 @@ def eval_fn(loader, model, loss_fn, device, epoch_num):
             acc_loss += loss.item()                             # subtotal of the correct losses
 
             loop.set_postfix(acc=correct/total, loss=loss.item())    # set current accuracy and loss
-    write_to_tensorboard(model_id, 'train', acc_loss / total, correct / total, epoch_num)
-    return correct/total, loss.item()
+    write_to_tensorboard(model_id, 'train', acc_loss/iterations, correct / total, epoch_num)
+    return correct/total, acc_loss/iterations
 
 def main():
     # Find which device is used
@@ -203,15 +206,25 @@ def main():
                 "optimizer": optimizer.state_dict(),
             }
             torch.save(checkpoint, "NetSquared_checkpoint.pth.tar")
-            print('\nModel saved...\n')
 
     # Plot accuracies and losses
     plt.subplot(121)
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+
     plt.plot(train_metrics['accuracy'])
     plt.plot(test_metrics['accuracy'])
+    plt.legend(['train', 'validation'], loc='upper left')
     plt.subplot(122)
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+
+
     plt.plot(train_metrics['loss'])
     plt.plot(test_metrics['loss'])
+    plt.legend(['train', 'validation'], loc='upper right')
     plt.show()
 
 if __name__ == "__main__":
