@@ -43,10 +43,9 @@ class NetSquared(nn.Module):
         x = self.globAvgPool(x)
         x = self.dropout1(x)
         x = torch.squeeze(x)
-        # x = torch.flatten(x,1)
         x = self.linear(x)
 
-        #
+
         return x
 
 
