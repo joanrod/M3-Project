@@ -8,6 +8,10 @@
 ---
 ### Week1
 
+Image classification using Pytorch
+
 [Slides](https://docs.google.com/presentation/d/1FGRrmjkltlC7GpD8WeX_9TiXb5x-T6QKmyFojb2Qg8w/edit?usp=sharing)
 
-Image classification using Pytorch
+```
+$ python train.py
+```
