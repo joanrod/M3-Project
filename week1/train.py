@@ -12,24 +12,26 @@ from tensorboardX import SummaryWriter  # tensorboard --logdir=folder logs
 from datetime import datetime
 import wandb
 
-wandb.init(project="NetSquared", entity="celulaeucariota")
-wandb.config = {
-  "learning_rate": 0.001,
-  "epochs": 100,
-  "batch_size": 128
-}
 
-# Hyperparameters etc.
+
+# Hyperparameters
 LEARNING_RATE = 0.01
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 32
 NUM_EPOCHS = 200
-NUM_WORKERS = 2
+NUM_WORKERS = 4
 PIN_MEMORY = True       # To speed up the file transfer to CPU to GPU
 LOAD_MODEL = False      # If True the stored weights will be laoded
 ROOT_PATH = ""
 TRAIN_IMG_DIR = ROOT_PATH + "MIT_split/train/"
 TEST_IMG_DIR = ROOT_PATH + "MIT_split/test/"
+
+wandb.init(project="NetSquared", entity="celulaeucariota")
+wandb.config = {
+  "learning_rate": LEARNING_RATE,
+  "epochs": NUM_EPOCHS,
+  "batch_size": BATCH_SIZE
+}
 
 # Timer
 start_time = datetime.today().strftime('%d_%m_%Y_%H_%M_%S')
@@ -52,12 +54,12 @@ def train_fn(loader, model, optimizer, loss_fn, scaler, device, epoch_num):
     """
 
     model.train()                       # Train mode
-
+    epoch_start = datetime.today()
     loop = tqdm(loader, desc=f'EPOCH {epoch_num} TRAIN')  # Create the tqdm bar for visualizing the progress.
-
+    iterations = loop.__len__()
     correct = 0     # accumulated correct predictions
-    total = 0       # accumulated total predictions
-    acc_loss = 0    # accumulated loss
+    total_samples = 0       # accumulated total predictions
+    loss_sum = 0    # accumulated loss
 
     # Loop to obtain the batches of images and labels
     for (data, targets) in loop:
@@ -69,23 +71,36 @@ def train_fn(loader, model, optimizer, loss_fn, scaler, device, epoch_num):
 
         output = model(data)                # Output of the model (logits).
         loss = loss_fn(output, targets)     # Compute the loss between the output and the ground truth
-
         _, predictions = torch.max(output.data, 1)  # Obtain the classes with higher probability (predicted classes)
 
-        total += data.size(0)                               # subtotal of the predictions
+        total_samples += data.size(0)                               # subtotal of the predictions
         correct += (predictions == targets).sum().item()    # subtotal of the correct predictions
-        acc_loss += loss.item()                             # subtotal of the correct losses
+        loss_sum += loss.item() * data.size(0)              # subtotal of the correct losses
 
         scaler.scale(loss).backward()   # compute the backward stage updating the weights of the model
         scaler.step(optimizer)          # using the Gradient Scaler
         scaler.update()
 
-        loop.set_postfix(acc=correct/total, loss=loss.item())  # set current accuracy and loss
+
+        # loop.set_postfix(acc=correct/total, loss=loss.item())  # set current accuracy and loss
 
         # Tensorboard: the object writer will add the batch metrics to plot in real time
-    write_to_tensorboard(model_id, 'train', acc_loss/total, correct/total, epoch_num)
+    epoch_acc = correct / total_samples
+    epoch_loss = loss_sum / total_samples
 
-    return correct/total, acc_loss/total
+    epoch_end = datetime.today()
+    print("\n{} epoch: {} loss: {:.3f}, acc: {:.3f}, End time: {}, Time elapsed: {}".format(
+        'Train',
+        epoch_num,
+        epoch_loss,
+        epoch_acc,
+        str(epoch_end.strftime('%d/%m/%Y %H:%M:%S')),
+        str(epoch_end - epoch_start).split(".")[0])
+    )
+
+    write_to_tensorboard(model_id, 'train', epoch_loss, epoch_acc, epoch_num)
+    return epoch_acc, epoch_loss
+
 def write_to_tensorboard(model_name, phase, epoch_loss, epoch_acc, counter):
     writer.add_scalars(model_name + "/loss", {phase: epoch_loss}, counter)
     writer.add_scalars(model_name + "/accuracy", {phase: epoch_acc}, counter)
@@ -105,17 +120,19 @@ def eval_fn(loader, model, loss_fn, device, epoch_num):
     """
 
     model.eval()                        # Put the model in evaluation mode
+    epoch_start = datetime.today()
 
     loop = tqdm(loader, desc=f'EPOCH {epoch_num}  TEST')  # Create the tqdm bar for visualizing the progress.
-
+    iterations = loop.__len__()
     correct = 0     # accumulated correct predictions
-    total = 0       # accumulated total predictions
-    acc_loss = 0    # accumulated loss
+    total_samples = 0       # accumulated total predictions
+    loss_sum = 0    # accumulated loss
 
     # Do not compute the gradients to go faster as we are not in training
     with torch.no_grad():
         # Iterate through the batches
         for (data, targets) in loop:
+
 
             data = data.to(device=device)           # Batch of images to DEVICE, where the model is
             targets = targets.to(device=device)     # Batch of labels to DEVICE, where the model is
@@ -125,13 +142,27 @@ def eval_fn(loader, model, loss_fn, device, epoch_num):
 
             _, predictions = torch.max(output.data, 1)  # Obtain the classes with higher probability
 
-            total += data.size(0)                               # subtotal of the predictions
+            total_samples += data.size(0)                               # subtotal of the predictions
             correct += (predictions == targets).sum().item()    # subtotal of the correct predictions
-            acc_loss += loss.item()                             # subtotal of the correct losses
+            loss_sum += loss.item() * data.size(0)  # subtotal of the correct losses
 
-            loop.set_postfix(acc=correct/total, loss=loss.item())    # set current accuracy and loss
-    write_to_tensorboard(model_id, 'train', acc_loss / total, correct / total, epoch_num)
-    return correct/total, loss.item()
+            # loop.set_postfix(acc=correct/total, loss=loss.item())    # set current accuracy and loss
+
+    epoch_acc = correct / total_samples
+    epoch_loss = loss_sum / total_samples
+
+    epoch_end = datetime.today()
+    print("\n{} epoch: {} loss: {:.3f}, acc: {:.3f}, End time: {}, Time elapsed: {}".format(
+        'Validation',
+        epoch_num,
+        epoch_loss,
+        epoch_acc,
+        str(epoch_end.strftime('%d/%m/%Y %H:%M:%S')),
+        str(epoch_end - epoch_start).split(".")[0])
+    )
+
+    write_to_tensorboard(model_id, 'train', epoch_loss, epoch_acc, epoch_num)
+    return epoch_acc, epoch_loss
 
 def main():
     # Find which device is used
@@ -147,7 +178,9 @@ def main():
             RandomHorizontalFlip(),
             RandomRotation(15),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(
+                mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225]),
         ]
     )
 
@@ -171,11 +204,17 @@ def main():
     train_dataset = ImageFolder(TRAIN_IMG_DIR, transform=transform)    # Create the train dataset
     test_dataset = ImageFolder(TEST_IMG_DIR, transform=transform)      # Create the test dataset
 
-    print("Training Data: ", train_dataset.__len__(), "images")
+    print("\nTraining Data: ", train_dataset.__len__(), "images")
     print("Validation Data: ", test_dataset.__len__(), "images")
 
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, pin_memory=True, shuffle=True)  # Create the train dataloader
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, pin_memory=True)                  # Create the test dataloader
+    train_loader = DataLoader(train_dataset,
+                              batch_size=BATCH_SIZE,
+                              pin_memory=True,
+                              shuffle=True)
+
+    test_loader = DataLoader(test_dataset,
+                             batch_size=BATCH_SIZE,
+                             pin_memory=True)
 
     train_metrics = {'accuracy': [], 'loss': []}
     test_metrics = {'accuracy': [], 'loss': []}
@@ -203,15 +242,25 @@ def main():
                 "optimizer": optimizer.state_dict(),
             }
             torch.save(checkpoint, "NetSquared_checkpoint.pth.tar")
-            print('\nModel saved...\n')
 
     # Plot accuracies and losses
     plt.subplot(121)
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+
     plt.plot(train_metrics['accuracy'])
     plt.plot(test_metrics['accuracy'])
+    plt.legend(['train', 'validation'], loc='upper left')
     plt.subplot(122)
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+
+
     plt.plot(train_metrics['loss'])
     plt.plot(test_metrics['loss'])
+    plt.legend(['train', 'validation'], loc='upper right')
     plt.show()
 
 if __name__ == "__main__":
