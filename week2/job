@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#SBATCH -J Train
+
+#SBATCH -n 4
+#SBATCH --mem 1000
+#SBATCH -p mhigh,mhigh
+#SBATCH --gres gpu:1
+#SBATCH -o out_train/%x_%u_%j.out
+#SBATCH -e out_train/%x_%u_%j.err
+
+python task_c.py
