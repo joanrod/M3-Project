@@ -44,13 +44,13 @@ def kitti_mots_dataset(path, split):
             # Iterate through all the objects of the current image
             for frame_num, obj_id, class_id, h, w, rle in image_data.itertuples(index=False):
                 if class_id not in [0, 10]:
-                    rle = frPyObjects([bytearray(rle, "utf8")], h, w)   # rle to poly
+                    rle = frPyObjects([bytearray(rle, "utf8")], h, w)
                     # data of the object
                     obj = {
-                        "bbox": toBbox(rle),
+                        "bbox": toBbox(rle).tolist()[0],
                         "bbox_mode": BoxMode.XYWH_ABS,
                         "category_id": class_id,
-                        "segmentation": rle,
+                        #"segmentation": rle,
                     }
                     objs.append(obj)
             record["annotations"] = objs
