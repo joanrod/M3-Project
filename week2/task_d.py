@@ -17,15 +17,19 @@ from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 
-from kitty_mots_dataset import kitti_mots_dataset
+from kitti_mots_dataset import kitti_mots_dataset
+
+kitti_path = '../../data/KITTI-MOTS/'
 
 # Register KITTI dataset
 for d in ["train", "val", "test"]:
-    DatasetCatalog.register("kitti_mots_" + d, lambda d=d: kitti_mots_dataset(d))
+    DatasetCatalog.register("KITTI-MOTS_" + d, lambda d=d: kitti_mots_dataset(kitti_path, "kitti_splits/kitti_" + d + ".txt"))
     MetadataCatalog.get("kitti_mots_" + d).set(thing_classes=["car, pedestrian"])
 
 # TO DO: Try different ones to benhcmark (3 for Faster and 3 for Mask)
 model_id = "COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml" #This models gives best results based on KITTI-MOTS tables
+
+# Obtain
 
 cfg = get_cfg()
 cfg.merge_from_file(model_zoo.get_config_file(model_id))
