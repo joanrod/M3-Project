@@ -31,12 +31,13 @@ else:
 	cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml")
 
 # Load image from KITTI-MOTS
-path_data = '/home/mcv/datasets/KITTI-MOTS/testing/image_02/'
-
 sequence = '0021/'
 image_name = '000042'
+split = 'training'
 
-im = cv2.imread(path_data + sequence+ image_name+'.png')
+path_data = '/home/mcv/datasets/KITTI-MOTS/'+split+'/image_02/'
+
+im = cv2.imread(path_data + sequence + image_name+'.png')
 
 
 predictor = DefaultPredictor(cfg)
@@ -48,4 +49,4 @@ print(outputs["instances"].pred_boxes)
 v = Visualizer(im[:, :, ::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
 out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
 
-cv2.imwrite('task_c_train_'+sequence+'_'+image_name+'_'+detectron_type+'.png', out.get_image()[:, :, ::-1])
+cv2.imwrite('task_c_'+split+'_'+sequence+'_'+image_name+'_'+detectron_type+'.png', out.get_image()[:, :, ::-1])
