@@ -19,7 +19,7 @@ from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog, build_detection_test_loader
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 
-from kitti_mots_dataset import kitti_mots_dataset
+from kitti_mots_dataset2 import kitti_mots_dataset
 
 kitti_path = '../../data/KITTI-MOTS/'
 kitti_correspondences = {
@@ -44,25 +44,22 @@ cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
 cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model_id)
 cfg.SOLVER.IMS_PER_BATCH = 2
 cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
-cfg.INPUT.MASK_FORMAT = 'bitmask'
 cfg.DATASETS.TRAIN = ("KITTI-MOTS_train",)
 cfg.DATASETS.VAL = ("KITTI-MOTS_val",)
 cfg.DATASETS.TEST = ("KITTI-MOTS_test",)
 predictor = DefaultPredictor(cfg)
 
-dataset_dicts = kitti_mots_dataset(path=kitti_path, split="kitti_splits/kitti_train.txt")
+# for idx, d in enumerate(random.sample(dataset_dicts, 4)):
+#     im_path = d["file_name"]
+#     print(d["annotations"])
+#     img = cv2.imread(im_path)
+#     v = Visualizer(img[:,:,::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
+#     out = v.draw_dataset_dict(d)
+#     out = out.get_image()[:,:,::-1]
+#     cv2.imwrite(f'test{idx}.jpg', out)
 
-for idx, d in enumerate(random.sample(dataset_dicts, 4)):
-    im_path = d["file_name"]
-    print(d["annotations"])
-    img = cv2.imread(im_path)
-    v = Visualizer(img[:,:,::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
-    out = v.draw_dataset_dict(d)
-    out = out.get_image()[:,:,::-1]
-    cv2.imwrite(f'test{idx}.jpg', out)
-
-evaluator = COCOEvaluator("KITTI-MOTS_val", output_dir='inference/')
-val_loader = build_detection_test_loader(cfg, "KITTI-MOTS_val")
+evaluator = COCOEvaluator("KITTI-MOTS_train", output_dir='inference/')
+val_loader = build_detection_test_loader(cfg, "KITTI-MOTS_train")
 print(inference_on_dataset(predictor.model, val_loader, evaluator))
 
 # cfg = get_cfg()
