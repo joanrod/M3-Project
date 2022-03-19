@@ -13,7 +13,7 @@ from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog, build_detection_test_loader
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 
-from kitti_mots_dataset2 import kitti_mots_dataset
+from kitti_mots_dataset import kitti_mots_dataset
 
 kitti_path = '../../data/KITTI-MOTS/'
 kitti_correspondences = {
