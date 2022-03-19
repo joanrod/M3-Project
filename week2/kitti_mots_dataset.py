@@ -31,7 +31,8 @@ def kitti_mots_dataset(path, split):
             img_num = int(img_path[:-4])    # integer image number
             record = {}                     # Dictionary of the annotations of the current image
 
-            record["file_name"] = os.path.join(path, line, img_path)    # Path to the image
+            filename = os.path.join(path, line, img_path)
+            record["file_name"] = filename                              # Path to the image
             record["image_id"] = f'{line[-4:]}{img_path[:-4]}'          # ImageId as 'SequenceNumberImgNumber' e.g. 0014000245
 
             image_data = table[table["image"] == img_num]               # Obtain annotations of the current image
@@ -49,7 +50,7 @@ def kitti_mots_dataset(path, split):
                     obj = {
                         "bbox": toBbox(rle).tolist()[0],
                         "bbox_mode": BoxMode.XYWH_ABS,
-                        "category_id": class_id,
+                        "category_id": class_id-1,
                         #"segmentation": rle,
                     }
                     objs.append(obj)

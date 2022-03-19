@@ -30,7 +30,8 @@ kitti_correspondences = {
 # Register KITTI dataset
 for d in ["train", "val", "test"]:
     DatasetCatalog.register("KITTI-MOTS_" + d, lambda d=d: kitti_mots_dataset(kitti_path, "kitti_splits/kitti_" + d + ".txt"))
-    MetadataCatalog.get("KITTI-MOT_" + d).set(thing_classes=["car", "pedestrian"])
+    MetadataCatalog.get("KITTI-MOTS_" + d).set(thing_classes=["car", "pedestrian"])
+
 # TO DO: Try different ones to benhcmark (3 for Faster and 3 for Mask)
 model_id = "COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml" #This models gives best results based on KITTI-MOTS tables
 
@@ -51,17 +52,14 @@ predictor = DefaultPredictor(cfg)
 
 dataset_dicts = kitti_mots_dataset(path=kitti_path, split="kitti_splits/kitti_train.txt")
 
-print(MetadataCatalog.get(cfg.DATASETS.TRAIN[0]))
-for d in random.sample(dataset_dicts, 4):
+for idx, d in enumerate(random.sample(dataset_dicts, 4)):
     im_path = d["file_name"]
+    print(d["annotations"])
     img = cv2.imread(im_path)
-
-    outputs = predictor(img)
-
     v = Visualizer(img[:,:,::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
-    out = v.draw_instance_predictions(outputs["instances"].to('cpu'))
+    out = v.draw_dataset_dict(d)
     out = out.get_image()[:,:,::-1]
-    cv2.imwrite('test.jpg', out)
+    cv2.imwrite(f'test{idx}.jpg', out)
 
 evaluator = COCOEvaluator("KITTI-MOTS_val", output_dir='inference/')
 val_loader = build_detection_test_loader(cfg, "KITTI-MOTS_val")
