@@ -1,13 +1,7 @@
-import matplotlib.pyplot as plt
-import torch
-# Some basic setup:
-# Setup detectron2 logger
-import detectron2
 from detectron2.utils.logger import setup_logger
 setup_logger()
 
 # import some common libraries
-import numpy as np
 import os, json, cv2, random
 import matplotlib.pyplot as plt
 
@@ -27,7 +21,7 @@ kitti_correspondences = {
     'Pedestrian': 2,
 }
 
-# Register KITTI dataset
+# Register KITTI dataset (train, val and test) with corresponding classes
 for d in ["train", "val", "test"]:
     DatasetCatalog.register("KITTI-MOTS_" + d, lambda d=d: kitti_mots_dataset(kitti_path, "kitti_splits/kitti_" + d + ".txt"))
     MetadataCatalog.get("KITTI-MOTS_" + d).set(thing_classes=["car", "pedestrian"])
@@ -38,26 +32,29 @@ model_id = "COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml" #This models giv
 # Posible ayuda
 # https://github.com/kevinbtw-codes/KITTI-Multi-Object-Detection-Tracking-Detectron2/blob/main/KITTI-MOTS-Detectron2.ipynb
 
+# CONFIGURATION
 cfg = get_cfg()
-cfg.merge_from_file(model_zoo.get_config_file(model_id))
-cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
-cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model_id)
+cfg.merge_from_file(model_zoo.get_config_file(model_id))    # model
+cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5                 # Threshold
+cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model_id)  # Model
 cfg.SOLVER.IMS_PER_BATCH = 2
 cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
 cfg.DATASETS.TRAIN = ("KITTI-MOTS_train",)
 cfg.DATASETS.VAL = ("KITTI-MOTS_val",)
 cfg.DATASETS.TEST = ("KITTI-MOTS_test",)
-predictor = DefaultPredictor(cfg)
+cfg.INPUT.MASK_FORMAT = 'bitmask'                           # segmentation as encoded binary mask (rle)
+predictor = DefaultPredictor(cfg)                           # Create predictor
 
-# for idx, d in enumerate(random.sample(dataset_dicts, 4)):
-#     im_path = d["file_name"]
-#     print(d["annotations"])
-#     img = cv2.imread(im_path)
-#     v = Visualizer(img[:,:,::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
-#     out = v.draw_dataset_dict(d)
-#     out = out.get_image()[:,:,::-1]
-#     cv2.imwrite(f'test{idx}.jpg', out)
+# Write some images from the training set to see if the dataset is loaded correctly
+for idx, d in enumerate(random.sample(kitti_mots_dataset(kitti_path, "kitti_splits/kitti_train.txt"), 4)):
+    im_path = d["file_name"]
+    img = cv2.imread(im_path)
+    v = Visualizer(img[:,:,::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
+    out = v.draw_dataset_dict(d)
+    out = out.get_image()[:,:,::-1]
+    cv2.imwrite(f'test{idx}.jpg', out)
 
+# Evaluate (INFERENCE)
 evaluator = COCOEvaluator("KITTI-MOTS_train", output_dir='inference/')
 val_loader = build_detection_test_loader(cfg, "KITTI-MOTS_train")
 print(inference_on_dataset(predictor.model, val_loader, evaluator))
