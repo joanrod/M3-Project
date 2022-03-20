@@ -1,0 +1,8 @@
+training/image_02/0000
+training/image_02/0001
+training/image_02/0002
+training/image_02/0003
+training/image_02/0004
+training/image_02/0005
+training/image_02/0006
+training/image_02/0007
