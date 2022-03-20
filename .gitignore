@@ -1,7 +1,8 @@
 week1/MIT_split
 .idea
 week1/__pycache__
-
+week2/output
+week2/inference
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
