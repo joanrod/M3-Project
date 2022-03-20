@@ -4,7 +4,6 @@
 - Juan Antonio Rodríguez - juanantonio.rodriguez@upf.edu
 - David Serrano - 99d.serrano@gmail.com
 
-[Report](https://www.overleaf.com/read/svmjdyqhxtty)
 ---
 ### Week1
 Image classification using Pytorch, available at M5/week1
@@ -20,6 +19,9 @@ $ python train.py
 Object Detection and Instance segmentation in the KITTI-MOTS dataset using Detectron2.
 Detect and segment pedestrians and cars.
 
+Slides for week 2: [Slides](https://docs.google.com/presentation/d/1ERkqOnMB56ElYuvYg9izsTqWn5aO28IjpjF5gZBFMKM/edit#slide=id.g11d85991502_0_90)
+
+[Report](FALTA EL LINK SIN PODER EDITAR)
 To fine-tune the COCO models for the KITTI-MOTS dataset run:
 ```
 $ python task_e.py
