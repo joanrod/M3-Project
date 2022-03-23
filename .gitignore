@@ -4,6 +4,13 @@ week1/__pycache__
 week2/output
 week2/inference
 
+# Ficheros que no se deberian de subir (FOTOS, GIFS, PICKLEs)
+*.png
+*.jpg
+*.gif
+*.pkl
+*.pickle
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
