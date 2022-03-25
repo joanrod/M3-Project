@@ -46,9 +46,15 @@ The CVPR paper corresponding to all the tasks and experiments devoted to Object 
 
 ## References
 [1] Ren, Shaoqing, et al. "Faster r-cnn: Towards real-time object detection with region proposal networks." Advances in neural information processing systems 28 (2015).
+
 [2] He, Kaiming, et al. "Mask r-cnn." Proceedings of the IEEE international conference on computer vision. 2017.
+
 [3] Voigtlaender, Paul, et al. "Mots: Multi-object tracking and segmentation." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2019.
-[4]Yuxin Wu and Alexander Kirillov and Francisco Massa and Wan-Yen Lo and Ross Girshick, [Detectron2](https://github.com/facebookresearch/detectron2), 2019
+
+[4]Yuxin Wu and Alexander Kirillov and Francisco Massa and Wan-Yen Lo and Ross Girshick, [Detectron2](https://github.com/facebookresearch/detectron2), 2019.
+
 [5] Lin, Tsung-Yi, et al. "Microsoft coco: Common objects in context." European conference on computer vision. Springer, Cham, 2014.
+
 [6] Choi, Myung Jin, Antonio Torralba, and Alan S. Willsky. "Context models and out-of-context objects." Pattern Recognition Letters 33.7 (2012): 853-862.
+
 [7] Rosenfeld, Amir, Richard Zemel, and John K. Tsotsos. "The elephant in the room." arXiv preprint arXiv:1808.03305 (2018).
