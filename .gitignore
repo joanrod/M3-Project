@@ -10,6 +10,7 @@ week2/inference
 *.gif
 *.pkl
 *.pickle
+*.JPEG
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

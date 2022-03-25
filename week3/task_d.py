@@ -1,5 +1,5 @@
 """
-Apply pre-trained MaskRCNN or FasterRCNN on COCO in Out-Of-Context Dataset
+Apply pre-trained MaskRCNN or FasterRCNN on COCO transplanting new objects by co-occurrence
 """
 import os
 import glob
@@ -13,17 +13,15 @@ from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog
 
 model_id = "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"
-OOC_path = '../../data/out_of_context/'
+taskd_path = 'taskd_input/'
 
 if __name__ == "__main__":
 
     # CONFIGURATION
     # Model config
     cfg = get_cfg()
-
-    # Run a model in detectron2's core library: get file and weights
-    cfg.merge_from_file(model_zoo.get_config_file(model_id))
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model_id)
+    cfg.merge_from_file(model_zoo.get_config_file(model_id))    # model
+    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(model_id)  # Model
 
     # Hyper-params
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5 # threshold used to filter out low-scored bounding boxes in predictions
@@ -33,9 +31,9 @@ if __name__ == "__main__":
 
     predictor = DefaultPredictor(cfg)   # Initialize predictor
 
-    os.makedirs('OOC_inference', exist_ok=True)
+    os.makedirs('taskd_output', exist_ok=True)
     # Iterate through all the images of the dataset
-    for idx, img_path in enumerate(sorted(glob.glob(f'{OOC_path}/*.jpg'))):
+    for idx, img_path in enumerate(sorted(glob.glob(f'{taskd_path}/*.JPEG'))):
         im = cv2.imread(img_path)
 
         outputs = predictor(im)
@@ -44,4 +42,4 @@ if __name__ == "__main__":
                        metadata=MetadataCatalog.get(cfg.DATASETS.TRAIN[0]))
 
         out = v.draw_instance_predictions(outputs["instances"].to('cpu'))
-        cv2.imwrite(f'OOC_inference/{idx}.png', out.get_image()[:, :, ::-1])
+        cv2.imwrite(f'taskd_output/{idx}.png', out.get_image()[:, :, ::-1])
