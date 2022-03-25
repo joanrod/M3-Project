@@ -21,7 +21,7 @@ The main task for this week was to use the Faster RCNN [1] (Object Detection alg
 
 ![Object Detection](/week2/inference/0013.gif)
 
-The model were pretrained on the Microsoft-COCO [5] dataset and finetunned on 8 sequences of the KITTI-MOTS dataset. All the reasoning and procedures can be seen in:
+The model were pretrained on the Microsoft-COCO [5] dataset and finetunned on 8 sequences of the KITTI-MOTS dataset. All the reasoning and procedures followed can be seen in:
 
 Slides for week 2: [Slides](https://docs.google.com/presentation/d/1ERkqOnMB56ElYuvYg9izsTqWn5aO28IjpjF5gZBFMKM/edit#slide=id.g11d85991502_0_90)
 
@@ -31,11 +31,11 @@ $ python week2/task_e.py
 ```
 
 ## Week3
-The context of an image encapsulates rich information about how natural scenes and objects are related to each other. That is why, the task for this week was to explore how the Object Detection algorithms use context detect some object or improve some detections.
+The context of an image encapsulates rich information about how natural scenes and objects are related to each other. That is why, the task for this week was to explore how the Object Detection algorithms use context to detect some objects or even to improve some detections.
 
 ![PlaneAsBird](/week3/readmeimage.png)
 
-The "Out-Of-Context" [6] dataset was used as well as custom images modified from the COCO dataset based on the Elephant in a room paper [7]. All the reasoning and procedured can be seen in:
+The "Out-Of-Context" [6] dataset was used as well as custom images modified from the COCO dataset based on the "The elephant in the room paper" [7]. All the reasoning and procedures followed can be seen in:
 
 Slides for week 3: [Slides](https://docs.google.com/presentation/d/1Hvv0NIu_j9Rd1Bp6VtYcSG42W5-3KcmsYLNb5G3_tno/edit?usp=sharing)
 
