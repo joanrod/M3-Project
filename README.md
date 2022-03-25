@@ -42,8 +42,6 @@ To run each sectian explained in the previos slides run:
 $ python week3/task_{id_task}.py
 ```
 
-The CVPR paper corresponding to all the tasks and experiments devoted to Object Detection and Instance Segmentation can be seen in:
-
-[Report](https://www.overleaf.com/read/hcbxsbkrsmcb)
+The CVPR paper corresponding to all the tasks and experiments devoted to Object Detection and Instance Segmentation can be seen in: [Paper](https://www.overleaf.com/read/hcbxsbkrsmcb)
 
 
