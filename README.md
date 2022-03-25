@@ -37,7 +37,7 @@ The "Out-Of-Context" [6] dataset was used as well as custom images modified from
 
 Slides for week 3: [Slides](https://docs.google.com/presentation/d/1Hvv0NIu_j9Rd1Bp6VtYcSG42W5-3KcmsYLNb5G3_tno/edit?usp=sharing)
 
-To run each sectian explained in the previos slides run:
+To run each section explained in the previos slides run:
 ```
 $ python week3/task_{id_task}.py
 ```
