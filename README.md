@@ -33,6 +33,7 @@ $ python week2/task_e.py
 ## Week3
 The context of an image encapsulates rich information about how natural scenes and objects are related to each other. That is why, the task for this week was to explore how the Object Detection algorithms use context detect some object or improve some detections.
 
+![PlaneAsBird](/week3/readmeimage.png)
 The "Out-Of-Context" [6] dataset was used as well as custom images modified from the COCO dataset based on the Elephant in a room paper [7]. All the reasoning and procedured can be seen in:
 
 Slides for week 3: [Slides](https://docs.google.com/presentation/d/1Hvv0NIu_j9Rd1Bp6VtYcSG42W5-3KcmsYLNb5G3_tno/edit?usp=sharing)
