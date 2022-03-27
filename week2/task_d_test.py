@@ -26,7 +26,7 @@ results_path = 'results/task_d/'
 # - "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml" (fast)
 # - "COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml" (accurate)
 
-model_id = "COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml"  # This models gives best results based on KITTI-MOTS tables
+model_id = "COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml"
 
 cfg = get_cfg()
 cfg.merge_from_file(
@@ -35,7 +35,6 @@ cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # Threshold
 cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(
     model_id)  # Model
 cfg.SOLVER.IMS_PER_BATCH = 2
-cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
 predictor = DefaultPredictor(cfg)  # Create predictor
 
 metadata = MetadataCatalog.get(cfg.DATASETS.TRAIN[0])
