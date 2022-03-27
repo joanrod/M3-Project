@@ -24,7 +24,7 @@ def loadData(path):
     open_file.close()
     return data_loaded
 
-def kitti_mots_dataset(path, split):
+def kitti_mots_dataset(path, split, type="inference"):
     """
     Function to load the kitti-mots dataset as coco format
     :param path: string, path to the KITTI-MOTS folder
@@ -45,7 +45,11 @@ def kitti_mots_dataset(path, split):
                              }]
     """
     # First of all look if the annotations have been already transformed to coco format
-    pickle_path = f'{split[:-4]}.pkl'
+    if type == "inference":
+        pickle_path = f'{split[:-4]}.pkl'
+    else:
+        pickle_path = f'{split[:-4]}_finetune.pkl'
+
     if os.path.exists(pickle_path):
         dataset_dicts = loadData(pickle_path)
 
@@ -77,13 +81,17 @@ def kitti_mots_dataset(path, split):
                 for id in obj_ids:
                     if id not in [0, 10000]:    # Skip background and objects to ignore
                         id_mask = np.zeros(mask.shape, dtype=np.uint8)  # mask for the object id
-                        id_mask[mask==id] = 1                           # set to 1 only the object id values
+                        id_mask[mask == id] = 1                           # set to 1 only the object id values
+                        if type == "inference":
+                            class_id = map_kitti_coco(id // 1000)
+                        else:
+                            class_id = int((id // 1000) - 1)
 
                         # Object annotations
                         obj = {
                             "bbox": cv2.boundingRect(id_mask),                      # BBox in x y w h
                             "bbox_mode": BoxMode.XYWH_ABS,
-                            "category_id": map_kitti_coco(id // 1000),                   # class id (0: car, 1: pedestrian)
+                            "category_id": class_id,                   # class id (0: car, 1: pedestrian)
                             "segmentation": encode(np.asarray(id_mask, order="F")), # segmentation mask encoded in rle
                         }
                         objs.append(obj)

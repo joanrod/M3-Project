@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # The datasets are not created here, they are just parsed to the DatsetCatalog, whenever they are used, the function
     # kitti_mots_dataset is called. It will return a list with the annotations
     for d in ["train", "val", "test"]:
-        DatasetCatalog.register("KITTI-MOTS_" + d, lambda d=d: kitti_mots_dataset(kitti_path, "kitti_splits/kitti_" + d + ".txt"))
+        DatasetCatalog.register("KITTI-MOTS_" + d, lambda d = d: kitti_mots_dataset(kitti_path, "kitti_splits/kitti_" + d + ".txt", "finetune"))
         MetadataCatalog.get("KITTI-MOTS_" + d).set(thing_classes=["car", "pedestrian"])
 
     # CONFIGURATION
