@@ -3,7 +3,7 @@ setup_logger()
 
 # import some common libraries
 import os, cv2, random
-import wandb
+#import wandb
 import glob
 import copy
 import torch
@@ -24,21 +24,22 @@ from utils import *
 
 TRAIN = True
 
-#model_id = "COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml"  # This models gives best results based on KITTI-MOTS tables
-#model_id = "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"
-model_id = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
-#model_id = "COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml"
+#model_id = "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml" #(fast)
+#model_id = "COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml" #(accurate)
+#model_id = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml" #(fast)
+model_id = "COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml" #(accurate)
+
 
 if __name__ == "__main__":
-    kitti_path = '../../data/KITTI-MOTS/'
+    kitti_path = '/export/home/mcv/datasets/KITTI-MOTS/'
     kitti_correspondences = {
         'Car': 1,
         'Pedestrian': 2,
     }
 
-    if TRAIN:
+    #if TRAIN:
         # Init wandb
-        wandb.init(project="detectron2-week2", entity='celulaeucariota', name=model_id, sync_tensorboard=True)
+        #wandb.init(project="detectron2-week2", entity='celulaeucariota', name=model_id, sync_tensorboard=True)
 
     # Register KITTI dataset (train, val and test) with corresponding classes
     # The datasets are not created here, they are just parsed to the DatsetCatalog, whenever they are used, the function

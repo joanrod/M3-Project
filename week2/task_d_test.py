@@ -15,18 +15,17 @@ from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 
 from kitti_mots_dataset import kitti_mots_dataset
 
-kitti_path = '../../data/KITTI-MOTS/'
+kitti_path = '/export/home/mcv/datasets/KITTI-MOTS/'
 results_path = 'results/task_d/'
 
 # Evaluate pretrained in COCO
 
 # Pretrained models
-# - "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml" (fast)
-# - "COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml" (accurate)
-# - "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml" (fast)
-# - "COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml" (accurate)
+#model_id = "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml" #(fast)
+#model_id = "COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml" #(accurate)
+#model_id = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml" #(fast)
+model_id = "COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml" #(accurate)
 
-model_id = "COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml"
 
 cfg = get_cfg()
 cfg.merge_from_file(
