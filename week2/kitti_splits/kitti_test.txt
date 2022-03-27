@@ -1,9 +1,8 @@
 training/image_02/0012
-training/image_02/0013
+training/image_02/0009
 training/image_02/0014
-training/image_02/0015
-training/image_02/0016
-training/image_02/0017
+training/image_02/0010
 training/image_02/0018
-training/image_02/0019
-training/image_02/0020
+training/image_02/0004
+training/image_02/0013
+training/image_02/0017

@@ -83,7 +83,7 @@ def kitti_mots_dataset(path, split):
                         obj = {
                             "bbox": cv2.boundingRect(id_mask),                      # BBox in x y w h
                             "bbox_mode": BoxMode.XYWH_ABS,
-                            "category_id": int((id // 1000) - 1),                   # class id (0: car, 1: pedestrian)
+                            "category_id": map_kitti_coco(id // 1000),                   # class id (0: car, 1: pedestrian)
                             "segmentation": encode(np.asarray(id_mask, order="F")), # segmentation mask encoded in rle
                         }
                         objs.append(obj)
@@ -92,6 +92,11 @@ def kitti_mots_dataset(path, split):
         saveData(path=pickle_path, data=dataset_dicts)
     return dataset_dicts
 
+def map_kitti_coco(label):
+    if label == 2:
+        return 0
+    elif label == 1:
+        return 2
 if __name__=="__main__":
     dataset = kitti_mots_dataset('../../data/KITTI-MOTS/', 'kitti_splits/kitti_val.txt')
     print()
